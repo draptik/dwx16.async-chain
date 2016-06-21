@@ -33,6 +33,8 @@ namespace AsyncChain
 
             // TODO: Compose here the chain manually
 
+            Son(() => Wife(() => Husband(done)));
+
             Assert.That(writer.ToString(), Is.EqualTo(@"Son
 Wife
 Husband
@@ -41,21 +43,24 @@ done
         }
 
         // TODO: Extend and implement this method
-        public static void Son()
+        public static void Son(Action action)
         {
             Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+            action.Invoke();
         }
 
         // TODO: Extend and implement this method
-        public static void Wife()
+        public static void Wife(Action action)
         {
             Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+            action.Invoke();
         }
 
         // TODO: Extend and implement this method
-        public static void Husband()
+        public static void Husband(Action action)
         {
             Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+            action.Invoke();
         }
 
         /*
