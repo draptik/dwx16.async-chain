@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using NUnit.Framework;
@@ -76,8 +77,8 @@ done
             };
 
             // TODO: Compose here the chain in a more generic way, reuse the methods Son(), Wife(), Husband()
-
-            Invoke();
+            var actions = new List<Action<Action>> {Son, Wife, Husband, next => done()};
+            Invoke(actions, 0);
 
             Assert.That(writer.ToString(), Is.EqualTo(@"Son
 Wife
@@ -87,9 +88,15 @@ done
         }
 
         // TODO: Extend and implement this method
-        public static void Invoke()
+        public static void Invoke(List<Action<Action>> actions, int currentIndex)
         {
+            if (currentIndex == actions.Count)
+            {
+                return;
+            }
 
+            var action = actions[currentIndex];
+            action(() => Invoke(actions, currentIndex + 1));
         }
 
         /*
