@@ -16,6 +16,7 @@ namespace AsyncChain
         [SetUp]
         public void SetUp()
         {
+            writer = new StringWriter();
             Console.SetOut(writer);
         }
 
@@ -114,6 +115,9 @@ done
             // - put EvilMethod() right before done
             // - Add filter on the top of the chain
 
+            var actions = new List<Action<Action>> { FilterInvalidOperationException, Son, Wife, Husband, EvilMethod };
+            Invoke(actions, 0);
+
 
             Assert.That(writer.ToString(), Is.EqualTo(@"FilterInvalidOperationException
 Son
@@ -128,9 +132,16 @@ Filtered!
         static void FilterInvalidOperationException(Action next)
         {
             Console.WriteLine(MethodBase.GetCurrentMethod().Name);
-
-            // TODO: Move this line where appropriate
-            Console.WriteLine("Filtered!");
+            
+            try
+            {
+                next();
+            }
+            catch (Exception)
+            {
+                // TODO: Move this line where appropriate
+                Console.WriteLine("Filtered!");
+            }
         }
 
         static void EvilMethod(Action next)
