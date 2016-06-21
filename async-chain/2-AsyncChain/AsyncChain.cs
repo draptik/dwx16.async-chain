@@ -126,6 +126,17 @@ done
             // - put EvilMethod() right before done
             // - Add filter on the top of the chain
 
+            var funcs = new List<Func<Func<Task>, Task>>
+            {
+                FilterInvalidOperationException,
+                Son,
+                Wife,
+                Husband,
+                EvilMethod,
+                next => done()
+            };
+
+            await Invoke(funcs);
 
             Assert.That(writer.ToString(), Is.EqualTo(@"FilterInvalidOperationException
 Son
@@ -141,8 +152,14 @@ Filtered!
         {
             Console.WriteLine("FilterInvalidOperationException");
 
-            // TODO: Move this line where appropriate
-            Console.WriteLine("Filtered!");
+            try
+            {
+                await next();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Filtered!");
+            }
         }
 
         static async Task EvilMethod(Func<Task> next)
