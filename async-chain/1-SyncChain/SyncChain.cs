@@ -79,7 +79,7 @@ done
 
             // TODO: Compose here the chain in a more generic way, reuse the methods Son(), Wife(), Husband()
             var actions = new List<Action<Action>> {Son, Wife, Husband, next => done()};
-            Invoke(actions, 0);
+            Invoke(actions);
 
             Assert.That(writer.ToString(), Is.EqualTo(@"Son
 Wife
@@ -89,7 +89,7 @@ done
         }
 
         // TODO: Extend and implement this method
-        public static void Invoke(List<Action<Action>> actions, int currentIndex)
+        public static void Invoke(List<Action<Action>> actions, int currentIndex = 0)
         {
             if (currentIndex == actions.Count)
             {
@@ -115,8 +115,8 @@ done
             // - put EvilMethod() right before done
             // - Add filter on the top of the chain
 
-            var actions = new List<Action<Action>> { FilterInvalidOperationException, Son, Wife, Husband, EvilMethod };
-            Invoke(actions, 0);
+            var actions = new List<Action<Action>> { FilterInvalidOperationException, Son, Wife, Husband, EvilMethod, next => done() };
+            Invoke(actions);
 
 
             Assert.That(writer.ToString(), Is.EqualTo(@"FilterInvalidOperationException
@@ -137,7 +137,7 @@ Filtered!
             {
                 next();
             }
-            catch (Exception)
+            catch (InvalidOperationException)
             {
                 // TODO: Move this line where appropriate
                 Console.WriteLine("Filtered!");
