@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -34,6 +35,7 @@ namespace AsyncChain
 
             // TODO: Compose here the chain manually
 
+            await Son(() => Wife(() => Husband(done)));
 
             Assert.That(writer.ToString(), Is.EqualTo(@"Son
 Wife
@@ -43,21 +45,24 @@ done
         }
 
         // TODO: Extend and implement this method
-        public static async Task Son()
+        public static async Task Son(Func<Task> next)
         {
             Console.WriteLine("Son");
+            await next();
         }
 
         // TODO: Extend and implement this method
-        public static async Task Wife()
+        public static async Task Wife(Func<Task> next)
         {
             Console.WriteLine("Wife");
+            await next();
         }
 
         // TODO: Extend and implement this method
-        public static async Task Husband()
+        public static async Task Husband(Func<Task> next)
         {
             Console.WriteLine("Husband");
+            await next();
         }
 
         /*
@@ -74,8 +79,9 @@ done
             };
 
             // TODO: Compose here the chain in a more generic way, reuse the methods Son(), Wife(), Husband()
+            var tasks = new List<Func<Func<Task>, Task>>() {Son, Wife, Husband, next => done()};
 
-            await Invoke();
+            await Invoke(tasks);
 
             Assert.That(writer.ToString(), Is.EqualTo(@"Son
 Wife
@@ -85,8 +91,23 @@ done
         }
 
         // TODO: Extend and implement this method
-        public static async Task Invoke()
+        public static Task Invoke(List<Func<Func<Task>, Task>> tasks, int currentIndex = 0)
         {
+            if (currentIndex == tasks.Count)
+            {
+                return Task.FromResult(0);
+            }
+
+            var task = tasks[currentIndex];
+
+            // not very efficient (requires async in signature):
+            //await task(async () => await Invoke(tasks, currentIndex + 1));
+
+            // slightly better (requires async in signature):
+            //await task(() => Invoke(tasks, currentIndex + 1));
+
+            // best
+            return task(() => Invoke(tasks, currentIndex + 1));
         }
 
         /*
